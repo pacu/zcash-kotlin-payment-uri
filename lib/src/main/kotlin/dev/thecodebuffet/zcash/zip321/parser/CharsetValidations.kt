@@ -14,5 +14,9 @@ class CharsetValidations {
         val isValidBech32Char: (Char) -> Boolean = { char ->
             char in 'a'..'z' || char in '0'..'9'
         }
+
+        fun isParamNameInParamNameCharset(char: Char): Boolean {
+            return char.isLetterOrDigit() || char == '+' || char == '-'
+        }
     }
 }
