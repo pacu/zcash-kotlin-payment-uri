@@ -5,6 +5,7 @@ import RecipientAddress
 import dev.thecodebuffet.zcash.zip321.ParamName
 
 sealed class Param {
+
     data class Address(val recipientAddress: RecipientAddress) : Param()
     data class Amount(val amount: Amount) : Param()
     data class Memo(val memoBytes: MemoBytes) : Param()

@@ -38,14 +38,6 @@
             addressValue
         }
 
-//        val optionallyIndexedParamName = MappedParser(
-//            SequenceParser(
-//
-//            )
-//        ) {
-//            null
-//        }
-
         var parameterIndexParser = MappedParser(
             SequenceParser(
                     CharInParser(CharRange('1','9')),
@@ -65,5 +57,23 @@
                     node.text
                 }
             }).toUInt()
+        }
+
+
+        val optionallyIndexedParamName = MappedParser(
+            SequenceParser(
+                ParameterNameParser(),
+                MaybeParser(
+                    SequenceParser(
+                        LiteralTokenParser("."),
+                        parameterIndexParser
+                    )
+                )
+            )
+        ) {
+            Pair<String,UInt?>(
+                it.node1.text,
+                it.node2.node?.let { idx -> idx.node2.value }
+            )
         }
     }

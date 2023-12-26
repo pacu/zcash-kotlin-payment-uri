@@ -44,4 +44,47 @@ class SubParserTests: FreeSpec({
             }
         }
     }
+    "Optionally IndexedParameter Name parsing" - {
+        "parses a non-indexed parameter" {
+            Parser(null).optionallyIndexedParamName
+                .parse(
+                    ParserContext.fromString("address")
+                )
+                .first
+                .value shouldBe Pair<String, UInt?>("address", null)
+        }
+        "parses a indexed parameter" {
+            Parser(null).optionallyIndexedParamName
+                .parse(
+                    ParserContext.fromString("address.123")
+                )
+                .first
+                .value shouldBe Pair<String, UInt?>("address", 123u)
+        }
+        "fails to parse a zero-index parameter" {
+            shouldThrowAny {
+                Parser(null).optionallyIndexedParamName
+                    .parse(
+                        ParserContext.fromString("address.0")
+                    )
+            }
+        }
+        "fails to parse leading zero parameter" {
+            shouldThrowAny {
+                Parser(null).optionallyIndexedParamName
+                    .parse(
+                        ParserContext.fromString("address.023")
+                    )
+            }
+        }
+
+        "fails to parse a parameter with an index greater than 9999" {
+            shouldThrowAny {
+                Parser(null).optionallyIndexedParamName
+                    .parse(
+                        ParserContext.fromString("address.19999")
+                    )
+            }
+        }
+    }
 })
