@@ -30,6 +30,9 @@ dependencies {
 
     // Use Detekt
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.3")
+
+    // parser
+    implementation("io.github.copper-leaf:kudzu-core:5.1.0")
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     api("org.apache.commons:commons-math3:3.6.1")
 
