@@ -1,16 +1,19 @@
     package dev.thecodebuffet.zcash.zip321.parser
 
     import RecipientAddress
+    import com.copperleaf.kudzu.parser.chars.AnyCharParser
     import com.copperleaf.kudzu.parser.chars.CharInParser
     import com.copperleaf.kudzu.parser.chars.DigitParser
+    import com.copperleaf.kudzu.parser.choice.PredictiveChoiceParser
     import com.copperleaf.kudzu.parser.many.AtMostParser
     import com.copperleaf.kudzu.parser.many.ManyParser
+    import com.copperleaf.kudzu.parser.many.UntilParser
     import com.copperleaf.kudzu.parser.mapped.MappedParser
     import com.copperleaf.kudzu.parser.maybe.MaybeParser
+    import com.copperleaf.kudzu.parser.predict.PredictionParser
     import com.copperleaf.kudzu.parser.sequence.SequenceParser
     import com.copperleaf.kudzu.parser.text.LiteralTokenParser
     import dev.thecodebuffet.zcash.zip321.ZIP321
-
 
     class Parser(val addressValidation: ((String) -> Boolean)?) {
         val maybeLeadingAddressParse = MappedParser (
@@ -37,7 +40,6 @@
             }?.invoke()
             addressValue
         }
-
         var parameterIndexParser = MappedParser(
             SequenceParser(
                     CharInParser(CharRange('1','9')),
@@ -59,10 +61,15 @@
             }).toUInt()
         }
 
-
         val optionallyIndexedParamName = MappedParser(
             SequenceParser(
-                ParameterNameParser(),
+                UntilParser(
+                    AnyCharParser(),
+                    PredictiveChoiceParser(
+                        LiteralTokenParser("."),
+                        LiteralTokenParser("=")
+                    )
+                ),
                 MaybeParser(
                     SequenceParser(
                         LiteralTokenParser("."),
@@ -71,9 +78,29 @@
                 )
             )
         ) {
-            Pair<String,UInt?>(
-                it.node1.text,
-                it.node2.node?.let { idx -> idx.node2.value }
-            )
+            val paramName = it.node1.text
+
+            if (!paramName.all { c -> CharsetValidations.isValidParamNameChar(c) }) {
+                throw ZIP321.Errors.ParseError("Invalid paramname $paramName")
+            } else {
+                Pair<String, UInt?>(
+                    it.node1.text,
+                    it.node2.node?.let { idx -> idx.node2.value }
+                )
+            }
         }
+
+        val queryKeyAndValueParser = MappedParser(
+            SequenceParser(
+                optionallyIndexedParamName,
+                LiteralTokenParser("="),
+                ManyParser(
+                    CharInParser(CharsetValidations.Companion.QcharCharacterSet.characters.toList())
+                )
+            )
+        ) {
+            Pair(it.node1.value,it.node3.text)
+        }
+
+
     }

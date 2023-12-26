@@ -3,6 +3,7 @@ package dev.thecodebuffet.zcash.zip321.parser
 import com.copperleaf.kudzu.parser.ParserContext
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.FreeSpec
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 class SubParserTests: FreeSpec({
@@ -83,6 +84,53 @@ class SubParserTests: FreeSpec({
                 Parser(null).optionallyIndexedParamName
                     .parse(
                         ParserContext.fromString("address.19999")
+                    )
+            }
+        }
+
+        "fails to parse a paramname with invalid characters" {
+            shouldThrowAny {
+                Parser(null).optionallyIndexedParamName
+                    .parse(
+                        ParserContext.fromString("add[ress[1].1")
+                    )
+            }
+        }
+    }
+    "Query and Key parser" - {
+        "parses a query key with no index" {
+            val parsedQueryParam = Parser(null).queryKeyAndValueParser
+                .parse(
+                    ParserContext.fromString(
+                        "address=tmEZhbWHTpdKMw5it8YDspUXSMGQyFwovpU"
+                    )
+                ).first.value
+
+            parsedQueryParam.first.first shouldBe "address"
+            parsedQueryParam.first.second shouldBe null
+            parsedQueryParam.second shouldBe "tmEZhbWHTpdKMw5it8YDspUXSMGQyFwovpU"
+        }
+
+        "parses a query key with a valid index" {
+            val parsedQueryParam = Parser(null).queryKeyAndValueParser
+                .parse(
+                    ParserContext.fromString(
+                        "address.123=tmEZhbWHTpdKMw5it8YDspUXSMGQyFwovpU"
+                    )
+                ).first.value
+
+            parsedQueryParam.first.first shouldBe "address"
+            parsedQueryParam.first.second shouldBe 123u
+            parsedQueryParam.second shouldBe "tmEZhbWHTpdKMw5it8YDspUXSMGQyFwovpU"
+        }
+
+        "fails to parse a query key with invalid index" {
+            shouldThrowAny {
+                Parser(null).queryKeyAndValueParser
+                    .parse(
+                        ParserContext.fromString(
+                            "address.00123=tmEZhbWHTpdKMw5it8YDspUXSMGQyFwovpU"
+                        )
                     )
             }
         }
