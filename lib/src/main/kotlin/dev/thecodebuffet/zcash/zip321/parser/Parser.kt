@@ -13,7 +13,7 @@
             SequenceParser(
                 LiteralTokenParser("zcash:"),
                 MaybeParser (
-                    AnyTextParser()
+                    AddressTextParser()
                 )
             )
         ) {

@@ -17,5 +17,16 @@ class ParserTests : FreeSpec({
             remainingText.isEmpty() shouldBe true
             node.value shouldBe IndexedParameter(0u, Param.Address(recipient))
         }
+
+        "detects leading address with other params" {
+            val validURI = "zcash:ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez?amount=1.0001"
+            val (node, remainingText) = Parser(null).maybeLeadingAddressParse.parse(
+                ParserContext.fromString(validURI)
+            )
+
+            val recipient = RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez", null)
+            remainingText.isEmpty() shouldBe false
+            node.value shouldBe IndexedParameter(0u, Param.Address(recipient))
+        }
     }
 })
