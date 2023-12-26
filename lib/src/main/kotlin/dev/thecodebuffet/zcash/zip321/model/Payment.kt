@@ -1,6 +1,6 @@
 data class Payment(
     val recipientAddress: RecipientAddress,
-    val amount: Amount,
+    val nonNegativeAmount: NonNegativeAmount,
     val memo: MemoBytes?,
     val label: String?,
     val message: String?,

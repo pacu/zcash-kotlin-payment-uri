@@ -3,7 +3,6 @@ package dev.thecodebuffet.zcash.zip321.parser
 import com.copperleaf.kudzu.parser.ParserContext
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 class SubParserTests: FreeSpec({

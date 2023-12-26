@@ -7,7 +7,7 @@ import java.math.RoundingMode
  *
  * @property value The decimal value of the ZEC amount.
  */
-class Amount {
+class NonNegativeAmount {
     private val value: BigDecimal
 
     /**
@@ -70,8 +70,8 @@ class Amount {
          * non-negative non-zero ZEC decimal amount.
          */
         @Throws(AmountError::class)
-        fun create(value: BigDecimal): Amount {
-            return Amount(value.round())
+        fun create(value: BigDecimal): NonNegativeAmount {
+            return NonNegativeAmount(value.round())
         }
 
         /**
@@ -83,7 +83,7 @@ class Amount {
          * amount constraints.
          */
         @Throws(AmountError::class)
-        fun createFromString(string: String): Amount {
+        fun createFromString(string: String): NonNegativeAmount {
             return create(decimalFromString(string))
         }
 
