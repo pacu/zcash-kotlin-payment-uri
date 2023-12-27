@@ -1,9 +1,14 @@
 package dev.thecodebuffet.zcash.zip321.parser
 
+import MemoBytes
+import NonNegativeAmount
+import RecipientAddress
 import com.copperleaf.kudzu.parser.ParserContext
+import dev.thecodebuffet.zcash.zip321.extensions.qcharDecode
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 
 class SubParserTests: FreeSpec({
     "paramindex subparser" - {
@@ -133,5 +138,102 @@ class SubParserTests: FreeSpec({
                     )
             }
         }
+    }
+
+    "query key parsing tests" - {
+        "parser catches query qcharencoded values" {
+            Parser(null).queryKeyAndValueParser
+                .parse(
+                    ParserContext.fromString("message.1=Thank%20You%20For%20Your%20Purchase")
+                )
+                .first
+                .value shouldBe Pair(Pair("message", 1u), "Thank%20You%20For%20Your%20Purchase")
+
+        }
+
+        "Zcash parameter creates valid amount" {
+            val query = "amount"
+            val value = "1.00020112"
+            val index = 1u
+            val input = Pair<Pair<String, UInt?>, String>(Pair(query, index), value)
+            Parser(null).zcashParameter(input) shouldBe
+            IndexedParameter(1u, Param.Amount(amount = NonNegativeAmount(value)))
+        }
+
+        "Zcash parameter creates valid message" {
+            val query = "message"
+            val index = 1u
+            val value = "Thank%20You%20For%20Your%20Purchase"
+            val input = Pair<Pair<String, UInt?>, String>(Pair(query, index), value)
+            val qcharDecodedValue = value.qcharDecode() ?: ""
+            qcharDecodedValue shouldNotBe ""
+
+            Parser(null).zcashParameter(input) shouldBe
+                    IndexedParameter(1u, Param.Message(qcharDecodedValue))
+        }
+
+        "Zcash parameter creates valid label" {
+            val query = "label"
+            val index = 1u
+            val value = "Thank%20You%20For%20Your%20Purchase"
+            val input = Pair<Pair<String, UInt?>, String>(Pair(query, index), value)
+            val qcharDecodedValue = value.qcharDecode() ?: ""
+            qcharDecodedValue shouldNotBe ""
+
+            Parser(null).zcashParameter(input) shouldBe
+                    IndexedParameter(1u, Param.Label(qcharDecodedValue))
+        }
+
+        "Zcash parameter creates valid memo" {
+            val query = "memo"
+            val index = 99u
+            val value = "VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"
+            val input = Pair<Pair<String, UInt?>, String>(Pair(query, index), value)
+            val memo = MemoBytes(value)
+            Parser(null).zcashParameter(input) shouldBe
+                    IndexedParameter(99u, Param.Memo(memo))
+        }
+
+        "Zcash parameter creates safely ignored other parameter" {
+            val query = "future-binary-format"
+            val value = "VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"
+            val input = Pair<Pair<String, UInt?>, String>(Pair(query, null), value)
+            Parser(null).zcashParameter(input) shouldBe
+                    IndexedParameter(0u, Param.Other(query, value))
+        }
+    }
+
+    "Parses many parameters in a row" - {
+        "Index parameters are parsed with no leading address" {
+            val remainingString = "?address=ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez&amount=1&memo=VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg&message=Thank%20you%20for%20your%20purchase"
+
+            val recipient = RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")
+
+            val expected = listOf(
+                IndexedParameter(0u, Param.Address(recipient)),
+                IndexedParameter(0u, Param.Amount(NonNegativeAmount("1"))),
+                IndexedParameter(0u, Param.Memo(MemoBytes("VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"))),
+                IndexedParameter(0u, Param.Message("Thank you for your purchase"))
+            )
+
+            Parser(null).parseParameters(remainingString, null) shouldBe expected
+        }
+    }
+
+    "Index parameters are parsed with leading address" {
+        val remainingString = "?amount=1&memo=VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg&message=Thank%20you%20for%20your%20purchase"
+
+        val recipient = RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")
+
+        val expected = listOf(
+            IndexedParameter(0u, Param.Address(recipient)),
+            IndexedParameter(0u, Param.Amount(NonNegativeAmount("1"))),
+            IndexedParameter(0u, Param.Memo(MemoBytes("VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"))),
+            IndexedParameter(0u, Param.Message("Thank you for your purchase"))
+        )
+
+        val leadingAddress = IndexedParameter(0u, Param.Address(recipient))
+
+        Parser(null).parseParameters(remainingString, leadingAddress) shouldBe expected
     }
 })

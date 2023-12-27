@@ -66,6 +66,7 @@ sealed class Param {
             }
         }
     }
+
     data class Address(val recipientAddress: RecipientAddress) : Param()
     data class Amount(val amount: NonNegativeAmount) : Param()
     data class Memo(val memoBytes: MemoBytes) : Param()
@@ -82,4 +83,41 @@ sealed class Param {
             is Message -> ParamName.MESSAGE.name
             is Other -> name
         }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Param
+
+        if (name != other.name) return false
+
+        return when (this) {
+            is Address -> recipientAddress == (other as? Address)?.recipientAddress
+            is Amount -> amount == (other as? Amount)?.amount
+            is Memo -> memoBytes == (other as? Memo)?.memoBytes
+            is Label -> label == (other as? Label)?.label
+            is Message -> message == (other as? Message)?.message
+            is Other -> (other as? Other)?.let {
+                    p -> p.paramName == paramName && p.value == value
+            } ?: false
+        }
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + when (this) {
+            is Address -> recipientAddress.hashCode()
+            is Amount -> amount.hashCode()
+            is Memo -> memoBytes.hashCode()
+            is Label -> label.hashCode()
+            is Message -> message.hashCode()
+            is Other -> {
+                result = 31 * result + paramName.hashCode()
+                result = 31 * result + value.hashCode()
+                result
+            }
+        }
+        return result
+    }
 }
