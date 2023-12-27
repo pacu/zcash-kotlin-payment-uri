@@ -122,7 +122,9 @@ class NonNegativeAmount {
 
         other as NonNegativeAmount
 
-        return this.value == other.value
+        // NOTE: comparing with == operator provides false negatives.
+        // apparently this is a JDK issue.
+        return this.value.compareTo(other.value) == 0
     }
 
     override fun hashCode(): Int {

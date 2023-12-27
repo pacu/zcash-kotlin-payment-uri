@@ -194,9 +194,19 @@ class SubParserTests: FreeSpec({
             val index = 99u
             val value = "VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"
             val input = Pair<Pair<String, UInt?>, String>(Pair(query, index), value)
-            val memo = MemoBytes(value)
+            val memo = MemoBytes.fromBase64URL(value)
             Parser(null).zcashParameter(input) shouldBe
                     IndexedParameter(99u, Param.Memo(memo))
+        }
+
+        "Zcash parameter creates valid memo that contains UTF-8 characters" {
+            val query = "memo"
+            val index = 99u
+            val value = "VGhpcyBpcyBhIHVuaWNvZGUgbWVtbyDinKjwn6aE8J-PhvCfjok"
+            val input = Pair<Pair<String, UInt?>, String>(Pair(query, index), value)
+            Parser(null).queryKeyAndValueParser.parse(
+                ParserContext.fromString("memo.99=VGhpcyBpcyBhIHVuaWNvZGUgbWVtbyDinKjwn6aE8J-PhvCfjok")
+            ).first.value shouldBe input
         }
 
         "Zcash parameter creates safely ignored other parameter" {
@@ -217,7 +227,7 @@ class SubParserTests: FreeSpec({
             val expected = listOf(
                 IndexedParameter(0u, Param.Address(recipient)),
                 IndexedParameter(0u, Param.Amount(NonNegativeAmount("1"))),
-                IndexedParameter(0u, Param.Memo(MemoBytes("VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"))),
+                IndexedParameter(0u, Param.Memo(MemoBytes.fromBase64URL("VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"))),
                 IndexedParameter(0u, Param.Message("Thank you for your purchase"))
             )
 
@@ -233,7 +243,7 @@ class SubParserTests: FreeSpec({
         val expected = listOf(
             IndexedParameter(0u, Param.Address(recipient)),
             IndexedParameter(0u, Param.Amount(NonNegativeAmount("1"))),
-            IndexedParameter(0u, Param.Memo(MemoBytes("VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"))),
+            IndexedParameter(0u, Param.Memo(MemoBytes.fromBase64URL("VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"))),
             IndexedParameter(0u, Param.Message("Thank you for your purchase"))
         )
 
@@ -388,9 +398,6 @@ class SubParserTests: FreeSpec({
                 Parser(null).mapToPayments(duplicateParams)
             } shouldBe ZIP321.Errors.DuplicateParameter("future", null)
         }
-
-
-
     }
 
 })

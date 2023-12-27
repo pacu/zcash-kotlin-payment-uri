@@ -48,7 +48,7 @@ sealed class Param {
                 }
                 ParamName.MEMO.value -> {
                     try {
-                        Param.Memo(MemoBytes(value))
+                        Param.Memo(MemoBytes.fromBase64URL(value))
                     } catch (error: MemoBytes.MemoError) {
                         throw ZIP321.Errors.MemoBytesError(error, index)
                     }

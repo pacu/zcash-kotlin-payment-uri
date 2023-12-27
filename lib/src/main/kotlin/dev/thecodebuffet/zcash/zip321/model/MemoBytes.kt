@@ -52,7 +52,7 @@ class MemoBytes {
     }
 
     override fun hashCode(): Int {
-        return data.contentHashCode()
+        return 31 * data.contentHashCode()
     }
 }
 
