@@ -81,7 +81,7 @@ sealed class Param {
             is Memo -> ParamName.MEMO.name
             is Label -> ParamName.LABEL.name
             is Message -> ParamName.MESSAGE.name
-            is Other -> name
+            is Other -> paramName
         }
 
     override fun equals(other: Any?): Boolean {
@@ -120,4 +120,35 @@ sealed class Param {
         }
         return result
     }
+
+    /**
+     * Checks if this `Param` is the same kind of
+     * the other given regardless of the value.
+     * this is useful to check if a list of `Param`
+     * conforming a `Payment` has duplicate query keys
+     * telling the porser to fail.
+     */
+    fun partiallyEqual(other: Param): Boolean {
+        if (this === other) return true
+
+        if (name != other.name) return false
+
+        return when (this) {
+            is Address ->  (other as? Address) != null
+            is Amount -> (other as? Amount) != null
+            is Memo -> (other as? Memo) != null
+            is Label -> (other as? Label) != null
+            is Message -> (other as? Message) != null
+            is Other -> (other as? Other)?.let {
+                    p -> p.paramName == paramName
+            } ?: false
+        }
+    }
+}
+
+fun List<Param>.hasDuplicateParam(param: Param): Boolean {
+    for (i in this) {
+       if (i.partiallyEqual(param)) return true else continue
+    }
+    return false
 }

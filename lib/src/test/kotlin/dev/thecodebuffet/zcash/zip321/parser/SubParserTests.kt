@@ -236,4 +236,30 @@ class SubParserTests: FreeSpec({
 
         Parser(null).parseParameters(remainingString, leadingAddress) shouldBe expected
     }
+
+    "Duplicate Params are caught" - {
+        "Duplicate other params are detected" {
+            val params = listOf(
+                Param.Address(RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")),
+                Param.Amount(NonNegativeAmount("1")),
+                Param.Message("Thanks"),
+                Param.Label("payment"),
+                Param.Other("future", "is awesome")
+            )
+
+            params.hasDuplicateParam(Param.Other("future", "is dystopic")) shouldBe true
+        }
+
+        "Duplicate address params are detected" {
+            val params = listOf(
+                Param.Address(RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")),
+                Param.Amount(NonNegativeAmount("1")),
+                Param.Message("Thanks"),
+                Param.Label("payment"),
+                Param.Other("future", "is awesome")
+            )
+
+            params.hasDuplicateParam(Param.Address(RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez"))) shouldBe true
+        }
+    }
 })
