@@ -2,13 +2,17 @@ package dev.thecodebuffet.zcash.zip321.parser
 
 import MemoBytes
 import NonNegativeAmount
+import Payment
 import RecipientAddress
 import com.copperleaf.kudzu.parser.ParserContext
+import dev.thecodebuffet.zcash.zip321.ZIP321
 import dev.thecodebuffet.zcash.zip321.extensions.qcharDecode
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import java.math.BigDecimal
 
 class SubParserTests: FreeSpec({
     "paramindex subparser" - {
@@ -262,4 +266,133 @@ class SubParserTests: FreeSpec({
             params.hasDuplicateParam(Param.Address(RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez"))) shouldBe true
         }
     }
+
+    "Payment can be created from uniquely indexed Params" - {
+        "Payment is created from indexed parameters" {
+            val recipient = RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")
+                ?: error("Failed to create recipient")
+
+            val params = listOf(
+                Param.Address(recipient),
+                Param.Amount(NonNegativeAmount("1")),
+                Param.Message("Thanks"),
+                Param.Label("payment"),
+                Param.Other("future", "is awesome")
+            )
+
+            val payment = shouldThrow<ZIP321.Errors> {
+                Payment.fromUniqueIndexedParameters(index = 1u, parameters = params)
+            }
+
+            payment shouldBe Payment(
+                recipientAddress = recipient,
+                nonNegativeAmount = NonNegativeAmount("1"),
+                memo = null,
+                label = "payment",
+                message = "Thanks",
+                otherParams = listOf(Pair("future","is awesome"))
+            )
+        }
+
+        "duplicate addresses are detected" {
+            val shieldedRecipient =
+                RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")
+
+            val duplicateAddressParams: List<IndexedParameter> = listOf(
+                IndexedParameter(index = 0u, param = Param.Address(shieldedRecipient)),
+                IndexedParameter(index = 0u, param = Param.Amount(NonNegativeAmount(value = BigDecimal(1)))),
+                IndexedParameter(index = 0u, param = Param.Message("Thanks")),
+                IndexedParameter(index = 0u, param = Param.Memo(MemoBytes.fromBase64URL("VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"))),
+                IndexedParameter(index = 0u, param = Param.Label("payment")),
+                IndexedParameter(index = 0u, param = Param.Address(shieldedRecipient)),
+                IndexedParameter(index = 0u, param = Param.Other("future", "is awesome"))
+            )
+
+            shouldThrow<ZIP321.Errors> {
+                Parser(null).mapToPayments(duplicateAddressParams)
+            } shouldBe ZIP321.Errors.DuplicateParameter("address", null)
+        }
+
+        "duplicate amounts are detected" {
+            val shieldedRecipient =
+                RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")
+
+            val duplicateAmountParams: List<IndexedParameter> = listOf(
+                IndexedParameter(index = 0u, param = Param.Address(shieldedRecipient)),
+                IndexedParameter(index = 0u, param = Param.Amount(NonNegativeAmount(value = BigDecimal(1)))),
+                IndexedParameter(index = 0u, param = Param.Message("Thanks")),
+                IndexedParameter(index = 0u, param = Param.Memo(MemoBytes.fromBase64URL("VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"))),
+                IndexedParameter(index = 0u, param = Param.Label("payment")),
+                IndexedParameter(index = 0u, param = Param.Amount(NonNegativeAmount(value = BigDecimal(2)))),
+                IndexedParameter(index = 0u, param = Param.Other("future", "is awesome"))
+            )
+
+            shouldThrow<ZIP321.Errors> {
+                Parser(null).mapToPayments(duplicateAmountParams)
+            } shouldBe ZIP321.Errors.DuplicateParameter("address", null)
+        }
+
+        "duplicate message are detected" {
+            val shieldedRecipient =
+                RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")
+
+            val duplicateParams: List<IndexedParameter> = listOf(
+                IndexedParameter(index = 0u, param = Param.Address(shieldedRecipient)),
+                IndexedParameter(index = 0u, param = Param.Amount(NonNegativeAmount(value = BigDecimal(1)))),
+                IndexedParameter(index = 0u, param = Param.Message("Thanks")),
+                IndexedParameter(index = 0u, param = Param.Memo(MemoBytes.fromBase64URL("VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"))),
+                IndexedParameter(index = 0u, param = Param.Message("Thanks")),
+                IndexedParameter(index = 0u, param = Param.Label("payment")),
+                IndexedParameter(index = 0u, param = Param.Amount(NonNegativeAmount(value = BigDecimal(2)))),
+                IndexedParameter(index = 0u, param = Param.Other("future", "is awesome"))
+            )
+
+            shouldThrow<ZIP321.Errors> {
+                Parser(null).mapToPayments(duplicateParams)
+            } shouldBe ZIP321.Errors.DuplicateParameter("message", null)
+        }
+
+        "duplicate memos are detected" {
+            val shieldedRecipient =
+                RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")
+
+            val duplicateParams: List<IndexedParameter> = listOf(
+                IndexedParameter(index = 0u, param = Param.Address(shieldedRecipient)),
+                IndexedParameter(index = 0u, param = Param.Memo(MemoBytes.fromBase64URL("VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"))),
+                IndexedParameter(index = 0u, param = Param.Amount(NonNegativeAmount(value = BigDecimal(1)))),
+                IndexedParameter(index = 0u, param = Param.Message("Thanks")),
+                IndexedParameter(index = 0u, param = Param.Memo(MemoBytes.fromBase64URL("VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"))),
+                IndexedParameter(index = 0u, param = Param.Label("payment")),
+                IndexedParameter(index = 0u, param = Param.Other("future", "is awesome"))
+            )
+
+            shouldThrow<ZIP321.Errors> {
+                Parser(null).mapToPayments(duplicateParams)
+            } shouldBe ZIP321.Errors.DuplicateParameter("memo", null)
+        }
+
+        "duplicate other params are detected" {
+            val shieldedRecipient =
+                RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")
+
+            val duplicateParams: List<IndexedParameter> = listOf(
+                IndexedParameter(index = 0u, param = Param.Address(shieldedRecipient)),
+                IndexedParameter(index = 0u, param = Param.Label("payment")),
+                IndexedParameter(index = 0u, param = Param.Amount(NonNegativeAmount(value = BigDecimal(1)))),
+                IndexedParameter(index = 0u, param = Param.Message("Thanks")),
+                IndexedParameter(index = 0u, param = Param.Other("future", "is dystopian")),
+                IndexedParameter(index = 0u, param = Param.Memo(MemoBytes.fromBase64URL("VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"))),
+                IndexedParameter(index = 0u, param = Param.Label("payment")),
+                IndexedParameter(index = 0u, param = Param.Other("future", "is awesome"))
+            )
+
+            shouldThrow<ZIP321.Errors> {
+                Parser(null).mapToPayments(duplicateParams)
+            } shouldBe ZIP321.Errors.DuplicateParameter("future", null)
+        }
+
+
+
+    }
+
 })

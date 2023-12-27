@@ -1,3 +1,6 @@
+import dev.thecodebuffet.zcash.zip321.ZIP321
+import dev.thecodebuffet.zcash.zip321.parser.Param
+
 data class Payment(
     val recipientAddress: RecipientAddress,
     val nonNegativeAmount: NonNegativeAmount,
@@ -5,4 +8,7 @@ data class Payment(
     val label: String?,
     val message: String?,
     val otherParams: List<RequestParams>?
-)
+) {
+    companion object {}
+}
+

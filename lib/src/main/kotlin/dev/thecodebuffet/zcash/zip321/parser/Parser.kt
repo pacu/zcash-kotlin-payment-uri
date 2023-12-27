@@ -1,5 +1,6 @@
     package dev.thecodebuffet.zcash.zip321.parser
 
+    import Payment
     import RecipientAddress
     import com.copperleaf.kudzu.parser.ParserContext
     import com.copperleaf.kudzu.parser.chars.AnyCharParser
@@ -145,6 +146,11 @@
             return IndexedParameter(queryKeyIndex, param)
         }
 
+        /**
+         * Parses the rest of the URI after the `zcash:` and possible
+         * leading address have been captured, validating the found addresses
+         * if validation is provided
+         */
         fun parseParameters(
             remainingString: String,
             leadingAddress: IndexedParameter?,
@@ -154,6 +160,7 @@
             val list = ArrayList<IndexedParameter>()
 
             leadingAddress?.let { list.add(it) }
+
             list.addAll(
                 queryParamsParser.parse(ParserContext.fromString(remainingString))
                     .first
@@ -167,4 +174,12 @@
 
             return list
         }
+
+        fun mapToPayments(indexedParameters: List<IndexedParameter>): List<Payment> {
+            throw ZIP321.Errors.Unimplemented
+        }
+    }
+
+    fun Payment.Companion.fromUniqueIndexedParameters(index: UInt, parameters: List<Param>): Payment {
+        throw ZIP321.Errors.Unimplemented
     }
