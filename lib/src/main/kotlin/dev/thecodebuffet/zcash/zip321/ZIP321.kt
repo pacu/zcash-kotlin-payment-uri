@@ -6,6 +6,7 @@ package dev.thecodebuffet.zcash.zip321
 import Payment
 import PaymentRequest
 import RecipientAddress
+import dev.thecodebuffet.zcash.zip321.parser.Parser
 
 /**
  * ZIP-321 object for handling formatting options.
@@ -84,7 +85,7 @@ object ZIP321 {
          * A value was expected to be qchar-encoded but its decoding failed.
          * Associated type has the value that failed.
          */
-        data class QcharDecodeFailed(val value: String) : Errors()
+        data class QcharDecodeFailed(val index: UInt?, val key: String, val value: String) : Errors()
 
         /**
          * The parser found a required parameter it does not recognize.
@@ -95,13 +96,13 @@ object ZIP321 {
          * are not recognized, but that are not prefixed with a req-, SHOULD be ignored.)
          */
         data class UnknownRequiredParameter(val value: String) : Errors()
-
-        /**
-         * TODO: Remove
-         */
-        object Unimplemented : Errors()
     }
 
+    sealed class ParserResult {
+        data class SingleAddress(val singleRecipient: RecipientAddress): ParserResult()
+
+        data class Request(val paymentRequest: PaymentRequest): ParserResult()
+    }
     /**
      * Enumerates formatting options for URI strings.
      */
@@ -167,5 +168,16 @@ object ZIP321 {
         formattingOptions: FormattingOptions = FormattingOptions.EnumerateAllPayments
     ): String {
         return uriString(PaymentRequest(payments = listOf(payment)), formattingOptions = formattingOptions)
+    }
+
+    /**
+     * Parses a ZIP-321 payment request from [String]
+     *
+     * @param uriString The payment request String.
+     * @param validatingRecipients a lambda that validates all found recipients
+     * @return The ZIP-321 payment request result [ParserResult].
+     */
+    fun request(uriString: String, validatingRecipients: ((String) -> Boolean)?): ParserResult {
+        return Parser(validatingRecipients).parse(uriString)
     }
 }

@@ -36,13 +36,13 @@ sealed class Param {
                 }
                 ParamName.LABEL.value -> {
                     when(val qcharDecoded = value.qcharDecode()) {
-                        null -> throw ZIP321.Errors.InvalidParamValue("label", index)
+                        null -> throw ZIP321.Errors.QcharDecodeFailed(index.mapToParamIndex(), queryKey, value)
                         else -> Param.Label(qcharDecoded)
                     }
                 }
                 ParamName.MESSAGE.value -> {
                     when(val qcharDecoded = value.qcharDecode()) {
-                        null -> throw ZIP321.Errors.InvalidParamValue("message", index)
+                        null -> throw ZIP321.Errors.QcharDecodeFailed(index.mapToParamIndex(), queryKey, value)
                         else -> Param.Message(qcharDecoded)
                     }
                 }

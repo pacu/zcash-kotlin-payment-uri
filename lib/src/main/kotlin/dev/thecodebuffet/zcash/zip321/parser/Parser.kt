@@ -4,6 +4,7 @@
     import NonNegativeAmount
     import OtherParam
     import Payment
+    import PaymentRequest
     import RecipientAddress
     import com.copperleaf.kudzu.parser.ParserContext
     import com.copperleaf.kudzu.parser.chars.AnyCharParser
@@ -18,9 +19,10 @@
     import com.copperleaf.kudzu.parser.sequence.SequenceParser
     import com.copperleaf.kudzu.parser.text.LiteralTokenParser
     import dev.thecodebuffet.zcash.zip321.ZIP321
+    import dev.thecodebuffet.zcash.zip321.ZIP321.ParserResult
     import java.math.BigDecimal
 
-    class Parser(val addressValidation: ((String) -> Boolean)?) {
+    class Parser(private val addressValidation: ((String) -> Boolean)?) {
         val maybeLeadingAddressParse = MappedParser (
             SequenceParser(
                 LiteralTokenParser("zcash:"),
@@ -30,7 +32,7 @@
             )
         ) {
             val addressValue: IndexedParameter? = it.node2.node?.let { textNode ->
-                {
+
                     IndexedParameter(
                         index = 0u,
                         param = Param.Address(
@@ -40,12 +42,13 @@
                             )
                         )
                     )
-                }
 
-            }?.invoke()
+
+            }
             addressValue
         }
-        var parameterIndexParser = MappedParser(
+
+        val parameterIndexParser = MappedParser(
             SequenceParser(
                     CharInParser(CharRange('1','9')),
                     MaybeParser(
@@ -110,7 +113,7 @@
         /**
          * parses a sequence of query parameters lead by query separator char (?)
          */
-        val queryParamsParser = MappedParser(
+        private val queryParamsParser = MappedParser(
             SequenceParser(
                 LiteralTokenParser("?"),
                 SeparatedByParser(
@@ -156,7 +159,7 @@
          * if validation is provided
          */
         fun parseParameters(
-            remainingString: String,
+            remainingString: ParserContext,
             leadingAddress: IndexedParameter?,
             validatingAddress: ((String) -> Boolean)? = null
         ): List<IndexedParameter> {
@@ -166,7 +169,7 @@
             leadingAddress?.let { list.add(it) }
 
             list.addAll(
-                queryParamsParser.parse(ParserContext.fromString(remainingString))
+                queryParamsParser.parse(remainingString)
                     .first
                     .value
                     .map { zcashParameter(it, validatingAddress) }
@@ -210,6 +213,42 @@
                 .map { (index, parameters) ->
                     Payment.fromUniqueIndexedParameters(index, parameters)
                 }
+        }
+
+
+
+        @Throws(ZIP321.Errors::class)
+        fun parse(uriString: String): ParserResult {
+            val (node, remainingText) = maybeLeadingAddressParse.parse(
+                ParserContext.fromString(uriString)
+            )
+
+            val leadingAddress = node.value
+
+
+            // no remaining text to parse and no address found. Not a valid URI
+            if (remainingText.isEmpty() && leadingAddress == null) {
+                throw ZIP321.Errors.InvalidURI
+            }
+
+            if (remainingText.isEmpty() && leadingAddress != null) {
+                leadingAddress?.let {
+                    when (val param = it.param) {
+                    is Param.Address -> return ParserResult.SingleAddress(param.recipientAddress)
+                    else ->
+                        throw ZIP321.Errors.ParseError("Parser Inconsistency. Encountered a leading parameter after `zcash:` that is not an address")
+                    }
+                }
+            }
+
+            // remaining text is not empty there's still work to do
+            return ParserResult.Request(
+                PaymentRequest(
+                    mapToPayments(
+                        parseParameters(remainingText, node.value, addressValidation)
+                    )
+                )
+            )
         }
     }
 

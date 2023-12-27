@@ -221,7 +221,7 @@ class SubParserTests: FreeSpec({
                 IndexedParameter(0u, Param.Message("Thank you for your purchase"))
             )
 
-            Parser(null).parseParameters(remainingString, null) shouldBe expected
+            Parser(null).parseParameters(ParserContext.fromString(remainingString), null) shouldBe expected
         }
     }
 
@@ -239,7 +239,7 @@ class SubParserTests: FreeSpec({
 
         val leadingAddress = IndexedParameter(0u, Param.Address(recipient))
 
-        Parser(null).parseParameters(remainingString, leadingAddress) shouldBe expected
+        Parser(null).parseParameters(ParserContext.fromString(remainingString), leadingAddress) shouldBe expected
     }
 
     "Duplicate Params are caught" - {
