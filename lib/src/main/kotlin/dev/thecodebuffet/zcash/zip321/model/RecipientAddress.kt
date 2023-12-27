@@ -31,4 +31,8 @@ class RecipientAddress private constructor(val value: String) {
     override fun hashCode(): Int {
         return value.hashCode()
     }
+
+    fun isTransparent(): Boolean {
+        return value.startsWith("t")
+    }
 }

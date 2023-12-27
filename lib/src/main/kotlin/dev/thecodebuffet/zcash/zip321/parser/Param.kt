@@ -76,11 +76,11 @@ sealed class Param {
 
     val name: String
         get() = when (this) {
-            is Address -> ParamName.ADDRESS.name
-            is Amount -> ParamName.AMOUNT.name
-            is Memo -> ParamName.MEMO.name
-            is Label -> ParamName.LABEL.name
-            is Message -> ParamName.MESSAGE.name
+            is Address -> ParamName.ADDRESS.name.lowercase()
+            is Amount -> ParamName.AMOUNT.name.lowercase()
+            is Memo -> ParamName.MEMO.name.lowercase()
+            is Label -> ParamName.LABEL.name.lowercase()
+            is Message -> ParamName.MESSAGE.name.lowercase()
             is Other -> paramName
         }
 

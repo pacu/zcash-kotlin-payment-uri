@@ -2,6 +2,7 @@ package dev.thecodebuffet.zcash.zip321.parser
 
 import MemoBytes
 import NonNegativeAmount
+import OtherParam
 import Payment
 import RecipientAddress
 import com.copperleaf.kudzu.parser.ParserContext
@@ -280,9 +281,7 @@ class SubParserTests: FreeSpec({
                 Param.Other("future", "is awesome")
             )
 
-            val payment = shouldThrow<ZIP321.Errors> {
-                Payment.fromUniqueIndexedParameters(index = 1u, parameters = params)
-            }
+            val payment = Payment.fromUniqueIndexedParameters(index = 1u, parameters = params)
 
             payment shouldBe Payment(
                 recipientAddress = recipient,
@@ -290,7 +289,7 @@ class SubParserTests: FreeSpec({
                 memo = null,
                 label = "payment",
                 message = "Thanks",
-                otherParams = listOf(Pair("future","is awesome"))
+                otherParams = listOf(OtherParam("future","is awesome"))
             )
         }
 
@@ -329,7 +328,7 @@ class SubParserTests: FreeSpec({
 
             shouldThrow<ZIP321.Errors> {
                 Parser(null).mapToPayments(duplicateAmountParams)
-            } shouldBe ZIP321.Errors.DuplicateParameter("address", null)
+            } shouldBe ZIP321.Errors.DuplicateParameter("amount", null)
         }
 
         "duplicate message are detected" {
@@ -382,7 +381,6 @@ class SubParserTests: FreeSpec({
                 IndexedParameter(index = 0u, param = Param.Message("Thanks")),
                 IndexedParameter(index = 0u, param = Param.Other("future", "is dystopian")),
                 IndexedParameter(index = 0u, param = Param.Memo(MemoBytes.fromBase64URL("VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"))),
-                IndexedParameter(index = 0u, param = Param.Label("payment")),
                 IndexedParameter(index = 0u, param = Param.Other("future", "is awesome"))
             )
 

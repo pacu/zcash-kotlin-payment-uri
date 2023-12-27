@@ -7,8 +7,10 @@ data class Payment(
     val memo: MemoBytes?,
     val label: String?,
     val message: String?,
-    val otherParams: List<RequestParams>?
+    val otherParams: List<OtherParam>?
 ) {
     companion object {}
 }
+
+data class OtherParam(val key: String, val value: String)
 

@@ -1,5 +1,8 @@
     package dev.thecodebuffet.zcash.zip321.parser
 
+    import MemoBytes
+    import NonNegativeAmount
+    import OtherParam
     import Payment
     import RecipientAddress
     import com.copperleaf.kudzu.parser.ParserContext
@@ -15,6 +18,7 @@
     import com.copperleaf.kudzu.parser.sequence.SequenceParser
     import com.copperleaf.kudzu.parser.text.LiteralTokenParser
     import dev.thecodebuffet.zcash.zip321.ZIP321
+    import java.math.BigDecimal
 
     class Parser(val addressValidation: ((String) -> Boolean)?) {
         val maybeLeadingAddressParse = MappedParser (
@@ -175,11 +179,92 @@
             return list
         }
 
+        /**
+         * Maps a list of `IndexedParameter` into a list of validated `Payment`
+         */
+        @Throws(ZIP321.Errors::class)
         fun mapToPayments(indexedParameters: List<IndexedParameter>): List<Payment> {
-            throw ZIP321.Errors.Unimplemented
+            if (indexedParameters.isEmpty()) {
+                throw ZIP321.Errors.RecipientMissing(null)
+            }
+
+            val paramsByIndex: MutableMap<UInt, MutableList<Param>> = mutableMapOf()
+
+            for (idxParam in indexedParameters) {
+                val paramVecByIndex = paramsByIndex[idxParam.index]
+                if (paramVecByIndex != null) {
+                    if (paramVecByIndex.hasDuplicateParam(idxParam.param)) {
+                        throw ZIP321.Errors.DuplicateParameter(
+                            idxParam.param.name,
+                            idxParam.index.mapToParamIndex()
+                        )
+                    } else {
+                        paramVecByIndex.add(idxParam.param)
+                    }
+                } else {
+                    paramsByIndex[idxParam.index] = mutableListOf(idxParam.param)
+                }
+            }
+
+            return paramsByIndex
+                .map { (index, parameters) ->
+                    Payment.fromUniqueIndexedParameters(index, parameters)
+                }
         }
     }
 
     fun Payment.Companion.fromUniqueIndexedParameters(index: UInt, parameters: List<Param>): Payment {
-        throw ZIP321.Errors.Unimplemented
+        val recipient = parameters.firstOrNull { param ->
+            when (param) {
+                is Param.Address -> true
+                else -> false
+            }
+        }?.let { address ->
+            when (address) {
+                is Param.Address -> address.recipientAddress
+                else -> null
+            }
+        } ?: throw ZIP321.Errors.RecipientMissing(index.mapToParamIndex() )
+
+        var amount: NonNegativeAmount? = null
+        var memo: MemoBytes? = null
+        var label: String? = null
+        var message: String? = null
+        val other = ArrayList<OtherParam>()
+
+        for (param in parameters) {
+            when(param) {
+                is Param.Address -> continue
+                is Param.Amount -> amount = param.amount
+                is Param.Label -> label = param.label
+                is Param.Memo -> {
+                    if (recipient.isTransparent()) {
+                        throw ZIP321.Errors.TransparentMemoNotAllowed(index.mapToParamIndex())
+                    }
+
+                    memo = param.memoBytes
+                }
+                is Param.Message -> message = param.message
+                is Param.Other -> other.add(OtherParam(param.paramName, param.value))
+            }
+        }
+
+        return Payment(
+            recipient,
+            amount ?: NonNegativeAmount(BigDecimal(0)),
+            memo,
+            label,
+            message,
+            when(other.isEmpty()) {
+                true -> null
+                false -> other
+            }
+        )
+    }
+
+    fun UInt.mapToParamIndex(): UInt? {
+        return when(this == 0u) {
+            false -> this
+            true -> null
+        }
     }
