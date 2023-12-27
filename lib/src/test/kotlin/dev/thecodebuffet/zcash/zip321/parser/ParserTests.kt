@@ -13,7 +13,8 @@ class ParserTests : FreeSpec({
                 ParserContext.fromString(validURI)
             )
 
-            val recipient = RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez", null)
+            val recipient =
+                RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez", null)
             remainingText.isEmpty() shouldBe true
             node.value shouldBe IndexedParameter(0u, Param.Address(recipient))
         }
@@ -24,7 +25,8 @@ class ParserTests : FreeSpec({
                 ParserContext.fromString(validURI)
             )
 
-            val recipient = RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez", null)
+            val recipient =
+                RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez", null)
             remainingText.isEmpty() shouldBe false
             node.value shouldBe IndexedParameter(0u, Param.Address(recipient))
         }

@@ -44,7 +44,11 @@ detekt {
     buildUponDefaultConfig = true // preconfigure defaults
     allRules = false // activate all available (even unstable) rules.
     config.setFrom("$rootDir/tools/detekt.yml")
-    autoCorrect = false
+    autoCorrect = true
+}
+
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    exclude("$rootDir/lib/src/test")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

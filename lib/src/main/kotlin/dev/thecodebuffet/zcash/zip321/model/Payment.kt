@@ -1,5 +1,3 @@
-import dev.thecodebuffet.zcash.zip321.ZIP321
-import dev.thecodebuffet.zcash.zip321.parser.Param
 
 data class Payment(
     val recipientAddress: RecipientAddress,
@@ -9,6 +7,7 @@ data class Payment(
     val message: String?,
     val otherParams: List<OtherParam>?
 ) {
+    @Suppress("EmptyClassBlock")
     companion object {}
 
     override fun equals(other: Any?): Boolean {
@@ -34,8 +33,6 @@ data class Payment(
         result = 31 * result + (otherParams?.hashCode() ?: 0)
         return result
     }
-
 }
 
 data class OtherParam(val key: String, val value: String)
-

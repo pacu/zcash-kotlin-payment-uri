@@ -9,15 +9,17 @@ import dev.thecodebuffet.zcash.zip321.extensions.qcharDecode
 
 sealed class Param {
     companion object {
-        fun from(queryKey: String,
-                 value: String,
-                 index: UInt,
-                 validatingAddress: ((String) -> Boolean)? = null): Param {
+        fun from(
+            queryKey: String,
+            value: String,
+            index: UInt,
+            validatingAddress: ((String) -> Boolean)? = null
+        ): Param {
             return when (queryKey) {
                 ParamName.ADDRESS.value -> {
                     try {
                         Param.Address(RecipientAddress(value, validatingAddress))
-                    } catch(error: RecipientAddress.RecipientAddressError.InvalidRecipient) {
+                    } catch (error: RecipientAddress.RecipientAddressError.InvalidRecipient) {
                         throw ZIP321.Errors.InvalidAddress(if (index > 0u) index else null)
                     }
                 }
@@ -31,17 +33,17 @@ sealed class Param {
                     } catch (error: NonNegativeAmount.AmountError.InvalidTextInput) {
                         throw ZIP321.Errors.ParseError("Invalid text input $value")
                     } catch (error: NonNegativeAmount.AmountError.TooManyFractionalDigits) {
-                        throw  ZIP321.Errors.AmountTooSmall(index)
+                        throw ZIP321.Errors.AmountTooSmall(index)
                     }
                 }
                 ParamName.LABEL.value -> {
-                    when(val qcharDecoded = value.qcharDecode()) {
+                    when (val qcharDecoded = value.qcharDecode()) {
                         null -> throw ZIP321.Errors.QcharDecodeFailed(index.mapToParamIndex(), queryKey, value)
                         else -> Param.Label(qcharDecoded)
                     }
                 }
                 ParamName.MESSAGE.value -> {
-                    when(val qcharDecoded = value.qcharDecode()) {
+                    when (val qcharDecoded = value.qcharDecode()) {
                         null -> throw ZIP321.Errors.QcharDecodeFailed(index.mapToParamIndex(), queryKey, value)
                         else -> Param.Message(qcharDecoded)
                     }
@@ -58,7 +60,7 @@ sealed class Param {
                         throw ZIP321.Errors.UnknownRequiredParameter(queryKey)
                     }
 
-                    when(val qcharDecoded = value.qcharDecode()) {
+                    when (val qcharDecoded = value.qcharDecode()) {
                         null -> throw ZIP321.Errors.InvalidParamValue("message", index)
                         else -> Param.Other(queryKey, qcharDecoded)
                     }
@@ -99,7 +101,8 @@ sealed class Param {
             is Label -> label == (other as? Label)?.label
             is Message -> message == (other as? Message)?.message
             is Other -> (other as? Other)?.let {
-                    p -> p.paramName == paramName && p.value == value
+                    p ->
+                p.paramName == paramName && p.value == value
             } ?: false
         }
     }
@@ -134,13 +137,14 @@ sealed class Param {
         if (name != other.name) return false
 
         return when (this) {
-            is Address ->  (other as? Address) != null
+            is Address -> (other as? Address) != null
             is Amount -> (other as? Amount) != null
             is Memo -> (other as? Memo) != null
             is Label -> (other as? Label) != null
             is Message -> (other as? Message) != null
             is Other -> (other as? Other)?.let {
-                    p -> p.paramName == paramName
+                    p ->
+                p.paramName == paramName
             } ?: false
         }
     }
@@ -148,7 +152,7 @@ sealed class Param {
 
 fun List<Param>.hasDuplicateParam(param: Param): Boolean {
     for (i in this) {
-       if (i.partiallyEqual(param)) return true else continue
+        if (i.partiallyEqual(param)) return true else continue
     }
     return false
 }

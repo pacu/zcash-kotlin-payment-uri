@@ -1,5 +1,4 @@
 package dev.thecodebuffet.zcash.zip321.parser
-
 import MemoBytes
 import NonNegativeAmount
 import OtherParam
@@ -15,7 +14,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import java.math.BigDecimal
 
-class SubParserTests: FreeSpec({
+class SubParserTests : FreeSpec({
     "paramindex subparser" - {
         "parses non-zero single digit" {
             Parser(null).parameterIndexParser
@@ -44,7 +43,6 @@ class SubParserTests: FreeSpec({
                 Parser(null).parameterIndexParser
                     .parse(ParserContext.fromString("090"))
             }
-
         }
 
         "fails on too many digits" - {
@@ -153,7 +151,6 @@ class SubParserTests: FreeSpec({
                 )
                 .first
                 .value shouldBe Pair(Pair("message", 1u), "Thank%20You%20For%20Your%20Purchase")
-
         }
 
         "Zcash parameter creates valid amount" {
@@ -162,7 +159,7 @@ class SubParserTests: FreeSpec({
             val index = 1u
             val input = Pair<Pair<String, UInt?>, String>(Pair(query, index), value)
             Parser(null).zcashParameter(input) shouldBe
-            IndexedParameter(1u, Param.Amount(amount = NonNegativeAmount(value)))
+                IndexedParameter(1u, Param.Amount(amount = NonNegativeAmount(value)))
         }
 
         "Zcash parameter creates valid message" {
@@ -174,7 +171,7 @@ class SubParserTests: FreeSpec({
             qcharDecodedValue shouldNotBe ""
 
             Parser(null).zcashParameter(input) shouldBe
-                    IndexedParameter(1u, Param.Message(qcharDecodedValue))
+                IndexedParameter(1u, Param.Message(qcharDecodedValue))
         }
 
         "Zcash parameter creates valid label" {
@@ -186,7 +183,7 @@ class SubParserTests: FreeSpec({
             qcharDecodedValue shouldNotBe ""
 
             Parser(null).zcashParameter(input) shouldBe
-                    IndexedParameter(1u, Param.Label(qcharDecodedValue))
+                IndexedParameter(1u, Param.Label(qcharDecodedValue))
         }
 
         "Zcash parameter creates valid memo" {
@@ -196,7 +193,7 @@ class SubParserTests: FreeSpec({
             val input = Pair<Pair<String, UInt?>, String>(Pair(query, index), value)
             val memo = MemoBytes.fromBase64URL(value)
             Parser(null).zcashParameter(input) shouldBe
-                    IndexedParameter(99u, Param.Memo(memo))
+                IndexedParameter(99u, Param.Memo(memo))
         }
 
         "Zcash parameter creates valid memo that contains UTF-8 characters" {
@@ -214,7 +211,7 @@ class SubParserTests: FreeSpec({
             val value = "VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg"
             val input = Pair<Pair<String, UInt?>, String>(Pair(query, null), value)
             Parser(null).zcashParameter(input) shouldBe
-                    IndexedParameter(0u, Param.Other(query, value))
+                IndexedParameter(0u, Param.Other(query, value))
         }
     }
 
@@ -222,7 +219,8 @@ class SubParserTests: FreeSpec({
         "Index parameters are parsed with no leading address" {
             val remainingString = "?address=ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez&amount=1&memo=VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg&message=Thank%20you%20for%20your%20purchase"
 
-            val recipient = RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")
+            val recipient =
+                RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")
 
             val expected = listOf(
                 IndexedParameter(0u, Param.Address(recipient)),
@@ -238,7 +236,8 @@ class SubParserTests: FreeSpec({
     "Index parameters are parsed with leading address" {
         val remainingString = "?amount=1&memo=VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg&message=Thank%20you%20for%20your%20purchase"
 
-        val recipient = RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")
+        val recipient =
+            RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")
 
         val expected = listOf(
             IndexedParameter(0u, Param.Address(recipient)),
@@ -299,7 +298,7 @@ class SubParserTests: FreeSpec({
                 memo = null,
                 label = "payment",
                 message = "Thanks",
-                otherParams = listOf(OtherParam("future","is awesome"))
+                otherParams = listOf(OtherParam("future", "is awesome"))
             )
         }
 
@@ -399,5 +398,4 @@ class SubParserTests: FreeSpec({
             } shouldBe ZIP321.Errors.DuplicateParameter("future", null)
         }
     }
-
 })

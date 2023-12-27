@@ -47,7 +47,7 @@ class CharsetValidations {
             val characters = setOf(
                 '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                 'A', 'B', 'C', 'D', 'E', 'F',
-                'a', 'b', 'c', 'd', 'e', 'f','%'
+                'a', 'b', 'c', 'd', 'e', 'f', '%'
             )
         }
 
@@ -75,6 +75,6 @@ class CharsetValidations {
 
         val isValidBech32Char: (Char) -> Boolean = { it in Bech32CharacterSet.characters }
 
-        val isValidParamNameChar: (Char) -> Boolean = {it in ParamNameCharacterSet.characters }
+        val isValidParamNameChar: (Char) -> Boolean = { it in ParamNameCharacterSet.characters }
     }
 }

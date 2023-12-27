@@ -1,7 +1,7 @@
 package dev.thecodebuffet.zcash.zip321
 
-import NonNegativeAmount
 import MemoBytes
+import NonNegativeAmount
 import Payment
 import RecipientAddress
 import io.kotest.core.spec.style.FreeSpec

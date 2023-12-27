@@ -1,13 +1,12 @@
 package dev.thecodebuffet.zcash.zip321
 
-import NonNegativeAmount
 import MemoBytes
+import NonNegativeAmount
 import Payment
 import PaymentRequest
 import RecipientAddress
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import java.math.BigDecimal
 
@@ -17,7 +16,8 @@ class ZcashSwiftPaymentUriTests : FreeSpec({
     "test that a single recipient payment request is generated" {
         val expected =
             "zcash:ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez"
-        val recipient = RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")
+        val recipient =
+            RecipientAddress("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez")
         ZIP321.request(recipient) shouldBe expected
     }
 
@@ -111,7 +111,6 @@ class ZcashSwiftPaymentUriTests : FreeSpec({
             is ZIP321.ParserResult.Request -> {
                 parsedRequest.paymentRequest shouldBe paymentRequest
             }
-
         }
     }
 })

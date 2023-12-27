@@ -67,7 +67,7 @@ class EncodingTests : FunSpec({
         mapOf(
             "Thank%20you%20for%20your%20purchase" to "Thank you for your purchase",
             "Use%20Coupon%20%5BZEC4LIFE%5D%20to%20get%20a%2020%25%20discount%20on%20your%20next%20purchase!!" to
-                    "Use Coupon [ZEC4LIFE] to get a 20% discount on your next purchase!!",
+                "Use Coupon [ZEC4LIFE] to get a 20% discount on your next purchase!!",
             "Order%20%23321" to "Order #321",
             "Your%20Ben%20%26%20Jerry's%20Order" to "Your Ben & Jerry's Order",
             "%20" to " ",

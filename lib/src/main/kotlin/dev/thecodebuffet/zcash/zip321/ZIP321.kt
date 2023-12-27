@@ -99,10 +99,11 @@ object ZIP321 {
     }
 
     sealed class ParserResult {
-        data class SingleAddress(val singleRecipient: RecipientAddress): ParserResult()
+        data class SingleAddress(val singleRecipient: RecipientAddress) : ParserResult()
 
-        data class Request(val paymentRequest: PaymentRequest): ParserResult()
+        data class Request(val paymentRequest: PaymentRequest) : ParserResult()
     }
+
     /**
      * Enumerates formatting options for URI strings.
      */
